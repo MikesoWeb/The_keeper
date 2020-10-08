@@ -1,11 +1,54 @@
-import os
-import shutil
-import time
+import functools
+import shutil, os, time
 from datetime import datetime
+import logging.config
+from settings import logger_config
 
 
+def dec_count(func):
+    @functools.wraps(func)
+    def wrapper(*args):
+        """Decorator count"""
+        wrapper.count += 1
+        func(*args)
+        # print(f'The func was called {wrapper.count} times')
+
+    wrapper.count = 0
+    return wrapper
+
+
+def dec_time(func):
+    @functools.wraps(func)
+    def wrapper_time(*args):
+        """Decorator count time"""
+        get_time = time.time()
+        func(*args)
+        print(f'The func completed the task in {time.time() - get_time} seconds')
+
+    return wrapper_time
+
+
+def dec_log(func):
+    @functools.wraps(func)
+    def wrapper_logging(*args):
+        """Decorator logging"""
+        logging.config.dictConfig(logger_config)
+        func(*args)
+
+        logger = logging.getLogger('app_logger')
+
+        logger.debug("Function call: %s" % logger)
+
+        logger.debug(f'{func.__name__}')
+
+    return wrapper_logging
+
+
+@dec_log
+@dec_time
+@dec_count
 def archive(count_digit, sec_count, count=0):
-
+    """Backups data"""
     # проверим есть ли папка, если нет,создать
     if not os.path.exists(os.path.join(os.getcwd(), 'old_archives')):
         os.mkdir('old_archives')
@@ -14,9 +57,9 @@ def archive(count_digit, sec_count, count=0):
         auto_name_archive = datetime.now().strftime('%d.%m.%Y-%H.%M.%S')
 
         # создание архивации папки test
-        print(f'Создаю новый архив {auto_name_archive}')
+        print(f'Create a new archive {auto_name_archive}')
         shutil.make_archive(f'all_archives/{auto_name_archive}', 'zip', 'test')
-        print(f'Создан новый архив {auto_name_archive}')
+        print(f'New archive created {auto_name_archive}')
 
         # создадим список файлов в папке all_archives
         list_dir = os.listdir('all_archives')
@@ -26,10 +69,9 @@ def archive(count_digit, sec_count, count=0):
 
         for i in full_path_all_archives[:-5]:
             shutil.move(i, 'old_archives')
-            print(f'Файл {i} перенесён в папку "old_archives"')
+            print(f'The archive {i} was moved to folder "old_archives"')
 
         # создадим список файлов в папке old_archives
-
         list_dir_old_archives = os.listdir('old_archives')
 
         # соберем у всех файлов полный путь
@@ -38,11 +80,11 @@ def archive(count_digit, sec_count, count=0):
         # удаляем все архивы, кроме последних пяти
         for j in full_path_old_archives[:-10]:
             os.unlink(j)
-            print(f'Архив {j} удалён навсегда!')
+            print(f'The archive {j} was deleted permanently!')
         time.sleep(sec_count)
         count += 1
         print()
 
 
 if __name__ == '__main__':
-    archive(10, 10)
+    archive(1, 5)

@@ -32,6 +32,9 @@ def dec_count(func):
 @dec_count
 def archive(count_digit, sec_count, count=0):
     """Выполняет архивацию данных"""
+    # проверим есть ли папка, если нет,создать
+    if not os.path.exists(os.path.join(os.getcwd(), 'old_archives')):
+        os.mkdir('old_archives')
     while count != count_digit:
         # Автонейминг архивов
         auto_name_archive = datetime.now().strftime('%d.%m.%Y-%H.%M.%S')
